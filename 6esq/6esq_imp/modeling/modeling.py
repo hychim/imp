@@ -34,7 +34,7 @@ import sys
 # ---------------------------
 # Define Input Files
 # ---------------------------
-datadirectory = "../data/"
+datadirectory = "../../data/"
 topology_file = datadirectory+"topology_A.txt"
 
 # Initialize model
