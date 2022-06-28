@@ -35,7 +35,7 @@ import sys
 # Define Input Files
 # ---------------------------
 datadirectory = "../../data/"
-topology_file = datadirectory+"topology_A.txt"
+topology_file = datadirectory+"topology_all_cl.txt"
 
 # Initialize model
 m = IMP.Model()
@@ -65,7 +65,7 @@ root_hier, dof = bs.execute_macro(max_rb_trans=4.0,
 # Fix all rigid bodies
 # First select and gather all particles to fix.
 fixed_particles = []
-for prot in ["A_3","H_1"]:                            # ADD FIXED PROTEIN HERE
+for prot in []:                            # ADD FIXED PROTEIN HERE
     fixed_particles += IMP.atom.Selection(
         root_hier, molecule=prot).get_selected_particles()
 
@@ -114,6 +114,27 @@ ev = IMP.pmi.restraints.stereochemistry.ExcludedVolumeSphere(
                                          resolution=10)
 ev.add_to_model()
 outputobjects.append(ev)
+
+cldbkc = IMP.pmi.io.crosslink.CrossLinkDataBaseKeywordsConverter()
+cldbkc.set_protein1_key("Protein 1")
+cldbkc.set_residue1_key("Residue 1")
+cldbkc.set_protein2_key("Protein 2")
+cldbkc.set_residue2_key("Residue 2")
+
+cl2db = IMP.pmi.io.crosslink.CrossLinkDataBase(cldbkc)
+cl2db.create_set_from_file(datadirectory+'pdb2cl.csv')
+
+cl = IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
+                                   root_hier=root_hier,
+                                   database=cl2db,
+                                   length=21.0,
+                                   slope=0.01,
+                                   resolution=1.0,
+                                   label="pdb2cl",
+                                   linker=ihm.cross_linkers.dss,
+                                   weight=1.)
+cl.add_to_model()
+outputobjects.append(cl)
 
 # --------------------------
 # Monte-Carlo Sampling

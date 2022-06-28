@@ -1,39 +1,31 @@
-from __future__ import print_function
-
-# Biopython
 import sys
+
 import Bio.PDB
 import Bio.PDB.StructureBuilder
 from Bio.PDB.Residue import Residue
 from Bio.PDB import PDBParser
 
-# IMP
-import IMP
-import IMP.pmi
-import IMP.pmi.topology
-import IMP.pmi.io
-import IMP.pmi.io.crosslink
-import IMP.pmi.restraints
-import IMP.pmi.restraints.crosslinking
-import ihm.cross_linkers
 
 ### Distance calculation
 parser = PDBParser(PERMISSIVE=1)
 
 # Read structure from files
-structure_id = "6esq_AC"
-filename = "6ESQ_AC_A-6ESQ_AC_C.pdb"
+structure_id = "6esq_JL"
+filename = "6ESQ_JL_J-6ESQ_JL_L.pdb"
 structure = parser.get_structure(structure_id, filename)
 
 model = structure[0]
-chainA = model['A']
-chainC = model['C']
+chainA = model['J']
+chainB = model['L']
 
-cldb = "Protein 1,Protein 2,Residue 1,Residue 2,UniqueID,Score \n"
+f = open('pdb2cl_JL.csv','w')
+pdb2cldb = "Protein 1,Residue 1,Protein 2,Residue 2,UniqueID \n"
+f.write(pdb2cldb)
 
-# loop through all residue in chain
+# https://bioinformatics.stackexchange.com/questions/783/how-can-we-find-the-distance-between-all-residues-in-a-pdb-file
+# ONLY WORKS FOR DIMER NOW
 for residue1 in chainA:
-    for residue2 in chainC:
+    for residue2 in chainB:
         # compute distance between CA atoms
         try:
             distance = residue1['CA'] - residue2['CA']
@@ -42,13 +34,9 @@ for residue1 in chainA:
                 continue
         if distance < 6:
             #print(chainA, residue1, chainC, residue2, distance)
-            cldb += f"ProtA,ProtB,{residue1.get_id()[1]},{residue2.get_id()[1]},,1.0 \n"
+            line = f"6esq_J,{residue1.get_id()[1]},6esq_L,{residue2.get_id()[1]-len(chainA)} \n"
+            pdb2cldb += line
+            f.write(line)
 
-print(cldb)
-
-### Cross linking data generation
-xldb='''Protein 1,Protein 2,Residue 1,Residue 2,UniqueID,Score
-ProtA,ProtB,1,10,1,1.0
-ProtA,ProtB,1,11,2,2.0
-ProtA,ProtB,1,21,3,2.0
-'''
+print(pdb2cldb)
+f.close()
