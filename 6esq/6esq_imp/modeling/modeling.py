@@ -1,17 +1,3 @@
-"""
-#############################################
-##  IMP Tutorial Script
-##
-#############################################
-#
-# Short modeling script combining EM and Crosslinking data
-# to localize two domains of RNA Polymerase II
-#
-# Authors: Riccardo Pellarin, Charles Greenberg, Daniel Saltzberg
-#
-# References: Papers where this data is shown...
-#
-"""
 import IMP
 import IMP.core
 import IMP.algebra
@@ -30,12 +16,14 @@ import IMP.pmi.topology
 import ihm.cross_linkers
 
 import sys
+import csv
 
 # ---------------------------
 # Define Input Files
 # ---------------------------
 datadirectory = "../../data/"
-topology_file = datadirectory+"topology_all_cl.txt"
+#topology_file = datadirectory+"topology_all_cl.txt"
+topology_file = datadirectory+"topology_AC_cl.txt"
 
 # Initialize model
 m = IMP.Model()
@@ -60,25 +48,9 @@ root_hier, dof = bs.execute_macro(max_rb_trans=4.0,
                                   max_srb_trans=4.0,
                                   max_srb_rot=0.3)
 
-#["A_1","B_1","C_1","D_1","E_1","F_1","G_1","H_1","I_1","J_1","K_1","L_1"]
-
-# Fix all rigid bodies
-# First select and gather all particles to fix.
-fixed_particles = []
-for prot in []:                            # ADD FIXED PROTEIN HERE
-    fixed_particles += IMP.atom.Selection(
-        root_hier, molecule=prot).get_selected_particles()
-
-# Fix the Corresponding Rigid movers and Super Rigid Body movers using dof
-# The flexible beads will still be flexible (fixed_beads is an empty list)!
-fixed_beads, fixed_rbs = dof.disable_movers(fixed_particles,
-                                            [IMP.core.RigidBodyMover,
-                                             IMP.pmi.TransformMover])
-
 # Randomize the initial configuration before sampling, of only the molecules
 # we are interested in (Rpb4 and Rpb7)
 IMP.pmi.tools.shuffle_configuration(root_hier,
-                                    excluded_rigid_bodies=fixed_rbs,
                                     max_translation=50,
                                     verbose=False,
                                     cutoff=5.0,
@@ -90,13 +62,7 @@ outputobjects = []  # reporter objects (for stat files)
 # Define Scoring Function Components
 # -----------------------------------
 
-# Here we are defining a number of restraints on our system.
-#  For all of them we call add_to_model() so they are incorporated
-#  into scoring. We also add them to the outputobjects list, so they
-#  are reported in stat files
-
-# Connectivity keeps things connected along the backbone (ignores if inside
-# same rigid body)
+# Connectivity keeps things connected along the backbone
 mols = IMP.pmi.tools.get_molecules(root_hier)
 for mol in mols:
     molname = mol.get_name()
@@ -108,33 +74,28 @@ for mol in mols:
     outputobjects.append(cr)
 
 # Excluded Volume Restraint
-#  To speed up this expensive restraint, we operate it at resolution 20
 ev = IMP.pmi.restraints.stereochemistry.ExcludedVolumeSphere(
                                          included_objects=root_hier,
-                                         resolution=10)
+                                         resolution=1000)
 ev.add_to_model()
 outputobjects.append(ev)
 
-cldbkc = IMP.pmi.io.crosslink.CrossLinkDataBaseKeywordsConverter()
-cldbkc.set_protein1_key("Protein 1")
-cldbkc.set_residue1_key("Residue 1")
-cldbkc.set_protein2_key("Protein 2")
-cldbkc.set_residue2_key("Residue 2")
+# Distant Constraint
+with open(datadirectory+'pdb2dr_AC.csv', newline='') as f:
+    reader = csv.reader(f)
+    data = list(reader)
 
-cl2db = IMP.pmi.io.crosslink.CrossLinkDataBase(cldbkc)
-cl2db.create_set_from_file(datadirectory+'pdb2cl.csv')
-
-cl = IMP.pmi.restraints.crosslinking.CrossLinkingMassSpectrometryRestraint(
-                                   root_hier=root_hier,
-                                   database=cl2db,
-                                   length=21.0,
-                                   slope=0.01,
-                                   resolution=1.0,
-                                   label="pdb2cl",
-                                   linker=ihm.cross_linkers.dss,
-                                   weight=1.)
-cl.add_to_model()
-outputobjects.append(cl)
+for i in data:
+    print(i)
+    try:
+        dr = IMP.pmi.restraints.basic.DistanceRestraint(root_hier,
+                                                        (int(i[1]),int(i[1]),i[0],),
+                                                        (int(i[3]),int(i[3]),i[2],),
+                                                        distancemin = float(i[4]),
+                                                        distancemax = float(i[4])+4)		
+        dr.add_to_model()
+    except:
+        pass
 
 # --------------------------
 # Monte-Carlo Sampling
