@@ -7,7 +7,7 @@ from Bio.PDB.Residue import Residue
 from Bio.PDB import PDBParser
 
 ### setting
-dimer_dir = "crosslinking"
+dimer_dir = "crosslinking_sub"
 
 ### Distance calculation
 parser = PDBParser(PERMISSIVE=1)
@@ -22,8 +22,7 @@ for file in os.listdir(directory):
          pdb_lst.append(filename)
 
 # Read structure from files
-f = open('pdb2cl.csv','w')
-f.write("Protein 1,Residue 1,Protein 2,Residue 2\n")
+f = open('pdb2dr_ACHLJEDBGKI.csv','w')
 
 for pdb in pdb_lst:
     structure_id = pdb
@@ -38,6 +37,10 @@ for pdb in pdb_lst:
     chainB = model[chain_lst[1]]
     print(chain_lst)
 
+    for residue in chainB:
+        first = residue.get_id()[1]
+        break
+
     # loop through all residue in chain
     # ONLY WORKS FOR DIMER NOW
     for residue1 in chainA:
@@ -50,7 +53,7 @@ for pdb in pdb_lst:
                 ## no CA atom, e.g. for H_NAG
                 continue
             if distance < 12:
-                line = f"6esq_{chainA.get_id()},{residue1.get_id()[1]},6esq_{chainB.get_id()},{residue2.get_id()[1]-len(chainA)} \n"
+                line = f"6esq_{chainA.get_id()},{residue1.get_id()[1]},6esq_{chainB.get_id()},{residue2.get_id()[1]-first+1},{distance} \n"
                 f.write(line)
 
 f.close()

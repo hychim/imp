@@ -22,8 +22,11 @@ import csv
 # Define Input Files
 # ---------------------------
 datadirectory = "../../data/"
-#topology_file = datadirectory+"topology_all_cl.txt"
-topology_file = datadirectory+"topology_AC_cl.txt"
+topology_file = datadirectory+"topology_EDBGKIF.txt"
+#topology_file = datadirectory+"topology_ACH.txt"
+
+dr_csv = datadirectory+'pdb2dr_EDBGKIF.csv'
+#dr_csv = datadirectory+'pdb2dr_AC.csv'
 
 # Initialize model
 m = IMP.Model()
@@ -81,20 +84,20 @@ ev.add_to_model()
 outputobjects.append(ev)
 
 # Distant Constraint
-with open(datadirectory+'pdb2dr_AC.csv', newline='') as f:
+with open(dr_csv, newline='') as f:
     reader = csv.reader(f)
     data = list(reader)
 
-for i in data:
-    print(i)
+for l in data:
     try:
         dr = IMP.pmi.restraints.basic.DistanceRestraint(root_hier,
-                                                        (int(i[1]),int(i[1]),i[0],),
-                                                        (int(i[3]),int(i[3]),i[2],),
-                                                        distancemin = float(i[4]),
-                                                        distancemax = float(i[4])+4)		
+                                                        (int(l[1]),int(l[1]),l[0],),
+                                                        (int(l[3]),int(l[3]),l[2],),
+                                                        distancemin = float(l[4])-1,
+                                                        distancemax = float(l[4])+1)		
         dr.add_to_model()
     except:
+        print(l)
         pass
 
 # --------------------------

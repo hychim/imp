@@ -1,0 +1,8 @@
+|molecule_name|color |fasta_fn           |fasta_id |pdb_fn    |chain|residue_range|pdb_offset|bead_size|em_residues_per_gaussian|rigid_body|super_rigid_body|chain_of_super_rigid_bodies|
+|6esq_B       |red   |rcsb_pdb_6ESQ.fasta|6ESQ_ABCD|6esq_B.pdb|A    |1,END        |0         |20       |0                       |2         |2||
+|6esq_D       |salmon|rcsb_pdb_6ESQ.fasta|6ESQ_ABCD|6esq_D.pdb|A    |1,END        |0         |20       |0                       |4         |4||
+|6esq_E       |gold  |rcsb_pdb_6ESQ.fasta|6ESQ_EFGH|6esq_E.pdb|A    |1,END        |0         |20       |0                       |5         |5||
+|6esq_F       |pink  |rcsb_pdb_6ESQ.fasta|6ESQ_EFGH|6esq_F.pdb|A    |1,END        |0         |20       |0                       |6         |6||
+|6esq_G       |gray  |rcsb_pdb_6ESQ.fasta|6ESQ_EFGH|6esq_G.pdb|A    |1,END        |0         |20       |0                       |7         |7||
+|6esq_I       |tan   |rcsb_pdb_6ESQ.fasta|6ESQ_IJKL|6esq_I.pdb|A    |1,END        |0         |20       |0                       |9         |9||
+|6esq_K       |purple|rcsb_pdb_6ESQ.fasta|6ESQ_IJKL|6esq_K.pdb|A    |1,END        |0         |20       |0                       |11        |11||

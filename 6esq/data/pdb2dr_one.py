@@ -35,7 +35,7 @@ for residue1 in chainA:
         except KeyError:
             ## no CA atom, e.g. for H_NAG
             continue
-        if distance<12:
+        if distance<6:
             line = f"6esq_{chainA.get_id()},{residue1.get_id()[1]},6esq_{chainB.get_id()},{residue2.get_id()[1]-592},{distance} \n"
             f.write(line)
 
