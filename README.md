@@ -1,13 +1,14 @@
 # Assembling protein complex with IMP
 This project aims to model large protein complex from combination of protein subunits using IMP.
 
-## Requirement
-1. BioPython
-2. IMP
-3. sys
+# Computational Requirement
+The only requirement is to clone this github repository and set up a conda environment before running the script.
+```bash
+clone https://github.com/hychim/imp.git
+conda create --prefix $YOUR_PATH -f environment.yml
+```
 
 ## Procedure
-1. Put all your dimer in to data folder and convert them into cross linking data using pdb2crosslink.py
+1. Put all your dimer pdb files into the data folder and convert them into dsitant restraint using pdb2dr.py
+2. 
 
-### pdb2cl
-Covert predicted structure from AF to cross link data form.
