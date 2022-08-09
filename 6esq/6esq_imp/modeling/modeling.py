@@ -13,30 +13,43 @@ import IMP.pmi.samplers
 import IMP.pmi.output
 import IMP.pmi.macros
 import IMP.pmi.topology
-import ihm.cross_linkers
 
 import sys
 import csv
+import argparse
+
+'''
+python modeling.py --topology ../../data/topology_ACH.txt --fasta ../../data/ --pdbdir ../../data/pdb/ \
+--dr ../../data/dr_csv/pdb2dr_ACH.csv --steps 20000 --outdir ../../data/output_test/
+'''
+
+parser = argparse.ArgumentParser(description = '''Modeling protein complex with IMP using only distant restraint.''')
+parser.add_argument('--topology', type=str, help = 'Path to topology txt.')
+parser.add_argument('--fasta', type=str, help = 'Path to fasta file.')
+parser.add_argument('--pdbdir', type=str, help = 'Path to fasta file.')
+parser.add_argument('--dr', type=str, help = 'Path to csv containing distant restraint')
+parser.add_argument('--steps', type=int, help = 'Number of steps for monte carlo sampling')
+parser.add_argument('--outdir', type=str, help = 'Where to write the result')
+args = parser.parse_args()
 
 # ---------------------------
 # Define Input Files
 # ---------------------------
-datadirectory = "../../data/"
-topology_file = datadirectory+"topology_EDBGKIF.txt"
-#topology_file = datadirectory+"topology_ACH.txt"
-
-dr_csv = datadirectory+'pdb2dr_EDBGKIF.csv'
-#dr_csv = datadirectory+'pdb2dr_AC.csv'
+topology = args.topology
+fasta = args.fasta
+pdbdir = args.pdbdir
+dr = args.dr
+steps = args.steps
+outdir = args.outdir
 
 # Initialize model
 m = IMP.Model()
 
 # Read in the topology file.
-# Specify the directory wheere the PDB files, fasta files and GMM files are
-topology = IMP.pmi.topology.TopologyReader(topology_file,
-                                           pdb_dir=datadirectory,
-                                           fasta_dir=datadirectory,
-                                           gmm_dir=datadirectory)
+# Specify the directory wheere the PDB files, fasta files
+topology = IMP.pmi.topology.TopologyReader(topology,
+                                           pdb_dir=pdbdir,
+                                           fasta_dir=fasta)
 
 # Use the BuildSystem macro to build states from the topology file
 bs = IMP.pmi.macros.BuildSystem(m)
@@ -51,8 +64,7 @@ root_hier, dof = bs.execute_macro(max_rb_trans=4.0,
                                   max_srb_trans=4.0,
                                   max_srb_rot=0.3)
 
-# Randomize the initial configuration before sampling, of only the molecules
-# we are interested in (Rpb4 and Rpb7)
+# Randomize the initial configuration before sampling
 IMP.pmi.tools.shuffle_configuration(root_hier,
                                     max_translation=50,
                                     verbose=False,
@@ -83,8 +95,8 @@ ev = IMP.pmi.restraints.stereochemistry.ExcludedVolumeSphere(
 ev.add_to_model()
 outputobjects.append(ev)
 
-# Distant Constraint
-with open(dr_csv, newline='') as f:
+# Distant Restraint
+with open(dr, newline='') as f:
     reader = csv.reader(f)
     data = list(reader)
 
@@ -93,8 +105,8 @@ for l in data:
         dr = IMP.pmi.restraints.basic.DistanceRestraint(root_hier,
                                                         (int(l[1]),int(l[1]),l[0],),
                                                         (int(l[3]),int(l[3]),l[2],),
-                                                        distancemin = float(l[4])-1,
-                                                        distancemax = float(l[4])+1)		
+                                                        distancemin = float(l[4])-1)
+                                                        #distancemax = float(l[4])+1)		
         dr.add_to_model()
     except:
         print(l)
@@ -103,11 +115,7 @@ for l in data:
 # --------------------------
 # Monte-Carlo Sampling
 # --------------------------
-
-# --------------------------
-# Set MC Sampling Parameters
-# --------------------------
-num_frames = 20000
+num_frames = steps
 if '--test' in sys.argv:
     num_frames = 100
 num_mc_steps = 10
@@ -124,7 +132,7 @@ mc1 = IMP.pmi.macros.ReplicaExchange0(
     replica_exchange_minimum_temperature=1.0,
     replica_exchange_maximum_temperature=2.5,
     number_of_best_scoring_models=10, monte_carlo_steps=num_mc_steps,
-    number_of_frames=num_frames, global_output_directory="output")
+    number_of_frames=num_frames, global_output_directory=outdir)
 
 # Start Sampling
 mc1.execute_macro()
